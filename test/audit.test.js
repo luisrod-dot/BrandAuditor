@@ -76,9 +76,24 @@ function anthropicReply(text, stop = "end_turn", status = 200) {
   anthropicReply("overloaded", "end_turn", 429);
   r = await call({ ...ok, body: { images: [PIXEL] } });
   assert.strictEqual(r.code, 429);
-  anthropicReply("invalid x-api-key", "end_turn", 401);
+  const errBody = (m) => JSON.stringify({ type: "error", error: { type: "invalid_request_error", message: m } });
+  anthropicReply(errBody("invalid x-api-key"), "end_turn", 401);
   r = await call({ ...ok, body: { images: [PIXEL] } });
-  assert.strictEqual(r.body.error, "not_configured");
+  assert.strictEqual(r.body.error, "invalid_key");
+  anthropicReply(errBody("Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing."), "end_turn", 400);
+  r = await call({ ...ok, body: { images: [PIXEL] } });
+  assert.strictEqual(r.body.error, "no_credit");
+  anthropicReply(errBody("model: claude-xyz"), "end_turn", 404);
+  r = await call({ ...ok, body: { images: [PIXEL] } });
+  assert.strictEqual(r.body.error, "model_not_found");
+  assert.ok(r.body.detail.includes("claude-xyz"));
+  anthropicReply(errBody("Overloaded internal error"), "end_turn", 500);
+  r = await call({ ...ok, body: { images: [PIXEL] } });
+  assert.strictEqual(r.body.error, "upstream_error");
+  assert.ok(r.body.detail.includes("500"));
+  anthropicReply(errBody("image exceeds 5 MB maximum"), "end_turn", 400);
+  r = await call({ ...ok, body: { images: [PIXEL] } });
+  assert.strictEqual(r.body.error, "image_rejected");
 
   r = await call({ method: "PUT" });
   assert.strictEqual(r.code, 405);

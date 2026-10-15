@@ -142,7 +142,10 @@
       case "timeout": return ["La revisión tardó demasiado. Prueba con el análisis estándar o con una pieza más liviana.", true];
       case "invalid_json": return ["No pude armar la calificación con el formato correcto. Vuelve a intentarlo.", true];
       case "network": return ["No pude conectar con el servidor. Revisa tu conexión e inténtalo de nuevo.", true];
-      default: return ["La revisión se interrumpió. Vuelve a intentarlo.", true];
+      case "no_credit": return ["La cuenta de Anthropic no tiene crédito disponible. Recarga saldo en console.anthropic.com → Billing y vuelve a intentar.", true];
+      case "invalid_key": return ["Anthropic rechazó la clave. Revisa que ANTHROPIC_API_KEY esté completa y vigente, y vuelve a desplegar.", false];
+      case "model_not_found": return ["El modelo configurado no está disponible para esta cuenta de Anthropic. Cambia MODEL_DEFAULT o MODEL_COMPLEX en Vercel." + (e.detail ? " (" + e.detail + ")" : ""), false];
+      default: return ["La revisión se interrumpió. Vuelve a intentarlo." + (e && e.detail ? " " + e.detail : ""), true];
     }
   }
 
@@ -288,7 +291,7 @@
         throw { code: "network" };
       }
       var data = await r.json().catch(function () { return {}; });
-      if (!r.ok) throw { code: r.status === 413 ? "payload_too_large" : (data && data.error) || "upstream_error" };
+      if (!r.ok) throw { code: r.status === 413 ? "payload_too_large" : (data && data.error) || "upstream_error", detail: data && data.detail };
       var ev = evaluate(data.result);
       last = ev;
       clearInterval(timer);

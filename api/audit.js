@@ -61,8 +61,8 @@ function extractJson(text) {
   return null;
 }
 
-function fail(res, status, error) {
-  return res.status(status).json({ error });
+function fail(res, status, error, detail) {
+  return res.status(status).json(detail ? { error, detail } : { error });
 }
 
 module.exports = async function handler(req, res) {
@@ -148,13 +148,19 @@ module.exports = async function handler(req, res) {
   clearTimeout(timer);
 
   if (!upstream.ok) {
-    // Se registra el motivo en los logs de Vercel, pero no se le devuelve al navegador.
-    const detail = await upstream.text().catch(() => "");
-    console.error("anthropic_error", upstream.status, detail.slice(0, 500));
-    if (upstream.status === 429 || upstream.status === 529) return fail(res, 429, "rate_limited");
-    if (upstream.status === 400 && /image/i.test(detail)) return fail(res, 400, "image_rejected");
-    if (upstream.status === 401 || upstream.status === 403) return fail(res, 500, "not_configured");
-    return fail(res, 502, "upstream_error");
+    // Anthropic responde {"error": {"type", "message"}}. El mensaje no contiene secretos y sirve para diagnosticar.
+    const raw = await upstream.text().catch(() => "");
+    let msg = raw;
+    try { msg = (JSON.parse(raw).error || {}).message || raw; } catch (e) {}
+    msg = String(msg).replace(/\s+/g, " ").slice(0, 300);
+    const s = upstream.status;
+    console.error("anthropic_error", s, msg);
+    if (s === 429 || s === 529) return fail(res, 429, "rate_limited");
+    if (/credit balance/i.test(msg)) return fail(res, 502, "no_credit");
+    if (s === 401 || s === 403) return fail(res, 502, "invalid_key");
+    if (s === 404) return fail(res, 502, "model_not_found", msg);
+    if (s === 400 && /image/i.test(msg)) return fail(res, 400, "image_rejected");
+    return fail(res, 502, "upstream_error", "Anthropic respondió " + s + ": " + msg);
   }
 
   const data = await upstream.json().catch(() => null);
