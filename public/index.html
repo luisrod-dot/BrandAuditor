@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Auditor RIMAC</title>
+<meta name="description" content="Sube tu pieza (PNG, JPG o PDF) y recibe su calificación con los lineamientos del RIDE System.">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;700&family=Figtree:wght@400;500;600;700;800&display=swap">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Auditor de piezas <span class="r">RIMAC</span></h1>
+    <p>Sube tu pieza en PNG, JPG o PDF y recibe la calificación con los lineamientos del RIDE System, con el mismo formato y criterios del skill /rimac-branding.</p>
+  </header>
+
+  <div class="layout">
+    <section class="col" aria-label="Pieza a revisar">
+      <label class="drop" id="drop" for="file">
+        <b>Arrastra tu pieza aquí</b>
+        <span>o haz clic para elegirla. También puedes pegarla con Ctrl/Cmd + V. PNG, JPG o PDF.</span>
+        <input class="visually-hidden" id="file" type="file" accept="image/png,image/jpeg,application/pdf,.png,.jpg,.jpeg,.pdf" multiple>
+      </label>
+
+      <div class="picked" id="picked" hidden>
+        <div class="picked-head">
+          <span class="nm" id="pname"></span>
+          <button type="button" class="linkbtn" id="clear">Quitar</button>
+        </div>
+        <div class="thumbs" id="thumbs"></div>
+        <p class="note" id="pnote" hidden></p>
+      </div>
+
+      <p class="notice" id="avail" hidden></p>
+
+      <div class="row">
+        <fieldset class="seg" id="tipoSeg">
+          <legend>Tipo de pieza</legend>
+          <label><input type="radio" name="tipo" value="auto" checked><span>Detectar</span></label>
+          <label><input type="radio" name="tipo" value="brand"><span>Marketing, redes o impreso</span></label>
+          <label><input type="radio" name="tipo" value="interface"><span>Producto digital, web o app</span></label>
+        </fieldset>
+        <fieldset class="seg" id="medioSeg">
+          <legend>Medio</legend>
+          <label><input type="radio" name="medio" value="auto" checked><span>Detectar</span></label>
+          <label><input type="radio" name="medio" value="digital"><span>Digital</span></label>
+          <label><input type="radio" name="medio" value="impreso"><span>Impreso</span></label>
+        </fieldset>
+        <div>
+          <label class="lbl" for="ctx">Contexto (opcional)</label>
+          <textarea id="ctx" placeholder="Ej: post feed 4:5 para Cyber RIMAC, público Change Agent"></textarea>
+        </div>
+        <div id="codeBox" hidden>
+          <label class="lbl" for="code">Código de acceso</label>
+          <input id="code" type="password" autocomplete="off" placeholder="Te lo comparte el equipo de Branding">
+        </div>
+        <div>
+          <label class="lbl" for="depth">Nivel de análisis</label>
+          <select id="depth">
+            <option value="default">Estándar</option>
+            <option value="complex">A fondo (tarda más)</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="actions">
+        <button type="button" class="btn" id="run" disabled>Revisar pieza</button>
+      </div>
+      <p class="detected" id="detected" hidden></p>
+    </section>
+
+    <section class="col" aria-label="Resultado" aria-live="polite" id="out">
+      <div class="res" id="res"></div>
+    </section>
+  </div>
+</div>
+<script src="app.js"></script>
+</body>
+</html>
